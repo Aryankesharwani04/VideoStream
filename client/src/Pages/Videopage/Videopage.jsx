@@ -94,7 +94,7 @@ const Videopage = () => {
                     <div className="container2_videoPage">
                         <div className="video_display_screen_videoPage">
                             <CustomVideoPlayer
-                                src={`http://localhost:5000/${vv?.filepath}`}
+                                src={`https://videostream-1b43.onrender.com/${vv?.filepath}`}
                                 onNextVideo={handleNextVideo}
                                 onShowComments={handleShowComments}
                                 onClose={handleClose}

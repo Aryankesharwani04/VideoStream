@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import Leftsidebar from '../../Component/Leftsidebar/Leftsidebar';
 import { searchUsersByChannelName } from '../../Api/userSearch';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = 'https://videostream-1b43.onrender.com';
 
 const ChatRoom = () => {
   const currentUser = useSelector(state => state.currentuserreducer);

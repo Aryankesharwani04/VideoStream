@@ -59,7 +59,7 @@ const Navbar = ({ toggledrawer, seteditcreatechanelbtn }) => {
                     .then((res) => {
                         setprofile(res.data);
                         // Always call backend login after Google login
-                        axios.post('http://localhost:5000/user/login', { email: res.data.email, name: res.data.name })
+                        axios.post('https://videostream-1b43.onrender.com/user/login', { email: res.data.email, name: res.data.name })
                             .then((backendRes) => {
                                 const userData = backendRes.data.result;
                                 if (!userData.city) {
