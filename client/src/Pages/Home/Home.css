@@ -1,0 +1,39 @@
+/* Responsive Home Navigation */
+.navigation_Home{
+    color: white;
+    background-color: rgb(37,37,37);
+    position: sticky;
+    display: flex;
+    overflow-x: auto;
+    top: 0;
+    border-bottom: 2px solid rgb(128,128,128,0.27);
+    padding: 1vw 0;
+    gap: 1vw;
+}
+.btn_nav_home{
+    background-color: rgb(46,46,46);
+    margin: 1vw;
+    padding: 1vw 2vw;
+    border-radius: 45px;
+    cursor: pointer;
+    font-size: 1em;
+}
+.btn_nav_home:hover{
+    background-color: rgb(128,128,128);
+}
+@media (max-width: 900px) {
+  .btn_nav_home {
+    font-size: 0.95em;
+    padding: 1.5vw 3vw;
+  }
+}
+@media (max-width: 600px) {
+  .navigation_Home {
+    gap: 2vw;
+    padding: 2vw 0;
+  }
+  .btn_nav_home {
+    font-size: 0.9em;
+    padding: 2vw 4vw;
+  }
+}

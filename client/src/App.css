@@ -1,0 +1,86 @@
+.Chanel_logo_App{
+  width: 8vw;
+  min-width: 32px;
+  max-width: 48px;
+  height: 8vw;
+  min-height: 32px;
+  max-height: 48px;
+  margin: auto;
+  border-radius: 100%;
+  background-color: rgb(224,227,214);
+  display: flex;
+}
+.fstChar_logo_App{
+  margin: auto;
+  color: black;
+  font-weight: bolder;
+  cursor: pointer;
+  font-size: 1.2em;
+}
+
+.container_Pages_App{
+  display: flex;
+  background-color: rgb(19,19,19);
+  flex-direction: row;
+}
+.container2_Pages_App{
+  width: 100vw;
+  height: 90vh;
+  border-top: 2px solid rgb(128,128,128,0.45);
+  overflow-y: auto;
+}
+.video_box_app{
+  width: 32vw;
+  min-width: 220px;
+  max-width: 400px;
+  height: 24vw;
+  min-height: 160px;
+  max-height: 320px;
+  margin-bottom: 2vw;
+  border: 2px solid transparent;
+}
+video {
+  background-color: rgba(8,8,8,0.662);
+  width: 100%;
+  height: 100%;
+}
+.dot{
+  height: 0.5vw;
+  width: 0.5vw;
+  min-width: 4px;
+  min-height: 4px;
+  border-radius: 100%;
+  background-color: white;
+  margin: auto 1vw;
+}
+
+@media (max-width: 900px) {
+  .container_Pages_App {
+    flex-direction: column;
+  }
+  .container2_Pages_App {
+    width: 100vw;
+    height: 80vh;
+  }
+  .video_box_app {
+    width: 90vw;
+    height: 50vw;
+    min-width: 180px;
+    min-height: 120px;
+  }
+}
+@media (max-width: 600px) {
+  .Chanel_logo_App {
+    width: 12vw;
+    height: 12vw;
+  }
+  .container2_Pages_App {
+    height: 70vh;
+  }
+  .video_box_app {
+    width: 98vw;
+    height: 60vw;
+    min-width: 120px;
+    min-height: 80px;
+  }
+}

@@ -1,0 +1,22 @@
+/* Responsive Video Grid */
+.Container_ShowVideoGrid{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 2vw;
+    padding: 2vw 0;
+}
+@media (max-width: 900px) {
+  .Container_ShowVideoGrid {
+    gap: 3vw;
+    padding: 3vw 0;
+  }
+}
+@media (max-width: 600px) {
+  .Container_ShowVideoGrid {
+    flex-direction: column;
+    gap: 2vw;
+    padding: 2vw 0;
+    align-items: center;
+  }
+}
