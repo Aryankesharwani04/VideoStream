@@ -36,6 +36,36 @@ const CustomVideoPlayer = ({
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
 
+  // --- Improved Tap/Click/Touch Handler for Mobile/Desktop ---
+  const touchData = useRef({ x: 0, y: 0, time: 0 });
+
+  const handleTouchStart = e => {
+    if (e.touches && e.touches.length === 1) {
+      const touch = e.touches[0];
+      touchData.current = {
+        x: touch.clientX,
+        y: touch.clientY,
+        time: Date.now()
+      };
+    }
+  };
+
+  const handleTouchEnd = e => {
+    if (e.changedTouches && e.changedTouches.length === 1) {
+      const touch = e.changedTouches[0];
+      const dx = Math.abs(touch.clientX - touchData.current.x);
+      const dy = Math.abs(touch.clientY - touchData.current.y);
+      const dt = Date.now() - touchData.current.time;
+      // Only treat as tap if movement is small and time is short
+      if (dx < 20 && dy < 20 && dt < 500) {
+        handleTapEvent({
+          clientX: touch.clientX,
+          touches: null // Mark as not a real touch event for tap logic
+        });
+      }
+    }
+  };
+
   // --- Improved Tap/Click/Touch Handler ---
   const handleTapEvent = e => {
     let clientX;
@@ -157,7 +187,8 @@ const CustomVideoPlayer = ({
       ref={containerRef}
       className="custom-video-player"
       onClick={handleTapEvent}
-      onTouchEnd={handleTapEvent}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       onDoubleClick={handleDoubleClick}
     >
       <video
