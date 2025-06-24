@@ -7,7 +7,7 @@ import { login } from '../../action/auth';
 const Createeditchannel = ({seteditcreatechanelbtn}) => {
     const dispatch=useDispatch()
     const currentuser=useSelector(state => state.currentuserreducer);
-    const [name,setaname]=useState(currentuser?.result.name)
+    const [name,setaname]=useState(currentuser?.result?.name)
     const[desc,setdesc]=useState(currentuser?.result?.desc)
     console.log(name,desc,currentuser)
     const handlesubmit=()=>{
@@ -15,8 +15,10 @@ const Createeditchannel = ({seteditcreatechanelbtn}) => {
             alert("Please enter name!!")
         }else if(!desc){
             alert("Please enter Description")
+        }else if(!currentuser?.result?._id || !currentuser?.result?.email){
+            alert("User not found. Please login again.");
         }else{
-            dispatch(updatechaneldata(currentuser?.result._id,{name:name,desc:desc}))
+            dispatch(updatechaneldata(currentuser.result._id,{name:name,desc:desc}))
             seteditcreatechanelbtn(false)
             setTimeout(()=>{
                 dispatch(login({email:currentuser.result.email}))

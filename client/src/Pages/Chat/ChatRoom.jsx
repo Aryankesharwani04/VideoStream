@@ -23,18 +23,18 @@ const ChatRoom = () => {
   const [addMemberSearch, setAddMemberSearch] = useState('');
   const [addMemberResults, setAddMemberResults] = useState([]);
   const [addMemberSelected, setAddMemberSelected] = useState([]);
-// Add this useEffect after your existing useEffect for fetching messages
-useEffect(() => {
-  if (!selectedRoom) return;
-  const interval = setInterval(() => {
-    axios.get(`${API_URL}/chat/messages/${selectedRoom._id}`, {
-      headers: { Authorization: `Bearer ${currentUser.token}` }
-    })
-      .then(res => setMessages(res.data))
-      .catch(err => {});
-  }, 3000); // fetch every 3 seconds
-  return () => clearInterval(interval);
-}, [selectedRoom, currentUser]);
+  // Add this useEffect after your existing useEffect for fetching messages
+  useEffect(() => {
+    if (!selectedRoom) return;
+    const interval = setInterval(() => {
+      axios.get(`${API_URL}/chat/messages/${selectedRoom._id}`, {
+        headers: { Authorization: `Bearer ${currentUser.token}` }
+      })
+        .then(res => setMessages(res.data))
+        .catch(err => {});
+    }, 3000); // fetch every 3 seconds
+    return () => clearInterval(interval);
+  }, [selectedRoom, currentUser]);
   // Fetch rooms for the current user
   useEffect(() => {
     if (!currentUser) return;
@@ -174,6 +174,9 @@ useEffect(() => {
       .catch(err => alert(err.response?.data?.error || 'Error deleting group'));
   };
 
+  // Add safe checks for currentUser and currentUser.result
+  const safeUser = currentUser?.result;
+
   return (
     <div style={{ display: 'flex', height: '90vh', backgroundColor: '#f0f0f0' }}>
       <Leftsidebar/>
@@ -212,7 +215,7 @@ useEffect(() => {
         {selectedRoom && (
           <div style={{ marginTop: 16 }}>
             {/* Admin actions */}
-            {selectedRoom.admin === currentUser.result._id && (
+            {selectedRoom.admin === safeUser?._id && (
               <>
                 <button onClick={() => setShowAddMember(true)}>Add Member</button>
                 <button onClick={handleDeleteRoom} style={{ color: 'red', marginLeft: 8 }}>Delete Group</button>
@@ -228,7 +231,7 @@ useEffect(() => {
         <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
           <h3>{selectedRoom ? selectedRoom.name : 'Select a room'}</h3>
           {messages.map((msg, idx) => (
-            <div key={idx} style={{ margin: '8px 0', textAlign: msg.sender?._id === currentUser.result._id ? 'right' : 'left' }}>
+            <div key={idx} style={{ margin: '8px 0', textAlign: msg.sender?._id === safeUser?._id ? 'right' : 'left' }}>
               <b>{msg.sender?.name || msg.sender?.email}:</b> {msg.text}
             </div>
           ))}

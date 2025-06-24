@@ -7,7 +7,7 @@ import { postcomment } from '../../action/comment'
 const Comment = ({ videoid }) => {
     const dispatch = useDispatch()
     const [commenttext, setcommentext] = useState("")
-    const currentuser = useSelector(state => state.currentuserreducer);
+    const currentuser=useSelector(state => state.currentuserreducer);
     const commentlist = useSelector(state => state.commentreducer)
     // Prevent special characters
     const isValidComment = (text) => {
@@ -27,7 +27,7 @@ const Comment = ({ videoid }) => {
                     videoid: videoid,
                     userid: currentuser?.result._id,
                     commentbody: commenttext,
-                    usercommented: currentuser.result.name
+                    usercommented: currentuser?.result?.name
                 }))
                 setcommentext("")
             }
