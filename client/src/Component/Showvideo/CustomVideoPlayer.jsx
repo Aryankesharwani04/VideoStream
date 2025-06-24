@@ -51,8 +51,7 @@ const CustomVideoPlayer = ({
   }, [playing]);
 
   // --- Improved Tap/Click/Touch Handler for Mobile/Desktop ---
-  const tapQueue = useRef([]); // {time, x, y}
-
+  // Use a single tapCount/tapTimeout for both mouse and touch
   const touchData = useRef({ x: 0, y: 0, time: 0 });
 
   const handleTouchStart = e => {
@@ -72,38 +71,53 @@ const CustomVideoPlayer = ({
       const dx = Math.abs(touch.clientX - touchData.current.x);
       const dy = Math.abs(touch.clientY - touchData.current.y);
       const dt = Date.now() - touchData.current.time;
-      // Only treat as tap if movement is small and time is short
       if (dx < 20 && dy < 20 && dt < 500) {
-        // Add tap to queue
+        // Use tapCount for touch as well
         const now = Date.now();
-        tapQueue.current.push({ time: now, x: touch.clientX, y: touch.clientY });
-        // Remove old taps
-        tapQueue.current = tapQueue.current.filter(t => now - t.time < 500);
-        // If 3 taps in 500ms and close in space, treat as triple tap
-        if (tapQueue.current.length >= 3) {
-          const t1 = tapQueue.current[tapQueue.current.length - 3];
-          const t3 = tapQueue.current[tapQueue.current.length - 1];
-          if (Math.abs(t1.x - t3.x) < 40 && Math.abs(t1.y - t3.y) < 40 && t3.time - t1.time < 500) {
-            // Triple tap
-            handleTapEvent({ clientX: t3.x, triple: true });
-            tapQueue.current = [];
-            return;
-          }
+        if (now - lastTap < 400) {
+          setTapCount(c => {
+            tapCountRef.current = c + 1;
+            return c + 1;
+          });
+        } else {
+          setTapCount(1);
+          tapCountRef.current = 1;
         }
-        // If 2 taps in 400ms and close in space, treat as double tap
-        if (tapQueue.current.length >= 2) {
-          const t1 = tapQueue.current[tapQueue.current.length - 2];
-          const t2 = tapQueue.current[tapQueue.current.length - 1];
-          if (Math.abs(t1.x - t2.x) < 40 && Math.abs(t1.y - t2.y) < 40 && t2.time - t1.time < 400) {
-            // Double tap
-            handleTapEvent({ clientX: t2.x, double: true });
-            tapQueue.current = [];
-            return;
+        setLastTap(now);
+        clearTimeout(tapTimeout.current);
+        tapTimeout.current = setTimeout(() => {
+          const v = videoRef.current;
+          const count = tapCountRef.current;
+          const rect = containerRef.current.getBoundingClientRect();
+          const x = touch.clientX - rect.left;
+          const zone = getTapZone(x, rect.width);
+          if (count === 1) {
+            if (zone === 'middle') {
+              v.paused ? v.play() : v.pause();
+              setShowOverlay(v.paused ? 'pause' : 'play');
+            }
+          } else if (count === 2) {
+            if (zone === 'right') {
+              v.currentTime = Math.min(v.duration, v.currentTime + 10);
+              setShowOverlay('forward');
+            } else if (zone === 'left') {
+              v.currentTime = Math.max(0, v.currentTime - 10);
+              setShowOverlay('backward');
+            }
+          } else if (count === 3) {
+            if (zone === 'middle') onNextVideo?.();
+            if (zone === 'left')   onShowComments?.();
+            if (zone === 'right')  navigate('/');
+            setShowOverlay(
+              zone === 'middle' ? 'next'
+              : zone === 'left'   ? 'comments'
+              : 'close'
+            );
           }
-        }
-        // Otherwise, treat as single tap
-        handleTapEvent({ clientX: touch.clientX });
-        tapQueue.current = [];
+          setTapCount(0);
+          tapCountRef.current = 0;
+          setTimeout(() => setShowOverlay(''), 350);
+        }, 400);
       }
     }
   };
@@ -277,6 +291,7 @@ const CustomVideoPlayer = ({
           aria-label={playing ? 'Pause' : 'Play'}
           onClick={e => {
             e.stopPropagation();
+            e.preventDefault();
             if (playing) {
               videoRef.current.pause();
             } else {
