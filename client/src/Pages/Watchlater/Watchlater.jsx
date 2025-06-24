@@ -47,7 +47,7 @@ const Watchlater = () => {
     //     },
     //   ]
   return (
-    <WHL page={"Watch Later"} videolist={watchlatervideolist}/>
+    <WHL style={{flexWrap: "wrap"}} page={"Watch Later"} videolist={watchlatervideolist}/>
   )
 }
 

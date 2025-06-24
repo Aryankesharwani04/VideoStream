@@ -2,10 +2,13 @@
     display: flex;
     flex-grow: 5;
     flex-direction: row-reverse;
+    flex-wrap: wrap;
+    
 }
 .btn_VideoPage{
     margin:  auto 0;
     display: flex;
+    flex-wrap: wrap;
 }
 .like_videoPage{
     margin: 0.5rem;

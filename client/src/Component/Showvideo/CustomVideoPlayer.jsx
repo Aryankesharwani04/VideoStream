@@ -1,5 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './CustomVideoPlayer.css';
+
+const getTapZone = (x, width) => {
+  // 0-39%: left, 40-59%: center, 60-100%: right
+  if (x < width * 0.4) return 'left';
+  if (x > width * 0.6) return 'right';
+  return 'middle';
+};
 
 const CustomVideoPlayer = ({
   src,
@@ -10,9 +18,11 @@ const CustomVideoPlayer = ({
 }) => {
   const containerRef = useRef();
   const videoRef = useRef();
+  const navigate = useNavigate();
 
   // Tap logic
   const [tapCount, setTapCount] = useState(0);
+  const tapCountRef = useRef(0);
   const [lastTap, setLastTap] = useState(0);
   const [showOverlay, setShowOverlay] = useState('');
   const tapTimeout = useRef();
@@ -26,35 +36,38 @@ const CustomVideoPlayer = ({
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
 
-  // Prevent native dblclick fullscreen
-  const handleDoubleClick = e => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  // Tap handler (1×,2×,3×)
-  const handleTap = e => {
+  // --- Improved Tap/Click/Touch Handler ---
+  const handleTapEvent = e => {
+    let clientX;
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+    } else {
+      clientX = e.clientX;
+    }
     const rect = containerRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    // Divide the area into 3 equal zones: left, middle, right
-    const leftZone = rect.width * (1 / 3);
-    const rightZone = rect.width * (2 / 3);
-    let zone = '';
-    if (x < leftZone) zone = 'left';
-    else if (x > rightZone) zone = 'right';
-    else zone = 'middle';
+    const x = clientX - rect.left;
+    const zone = getTapZone(x, rect.width);
     const now = Date.now();
-    if (now - lastTap < 400) setTapCount(c => c + 1);
-    else setTapCount(1);
+    if (now - lastTap < 400) {
+      setTapCount(c => {
+        tapCountRef.current = c + 1;
+        return c + 1;
+      });
+    } else {
+      setTapCount(1);
+      tapCountRef.current = 1;
+    }
     setLastTap(now);
-
     clearTimeout(tapTimeout.current);
     tapTimeout.current = setTimeout(() => {
       const v = videoRef.current;
-      if (tapCount === 1 && zone === 'middle') {
-        v.paused ? v.play() : v.pause();
-        setShowOverlay('pause');
-      } else if (tapCount === 2) {
+      const count = tapCountRef.current;
+      if (count === 1) {
+        if (zone === 'middle') {
+          v.paused ? v.play() : v.pause();
+          setShowOverlay(v.paused ? 'pause' : 'play');
+        }
+      } else if (count === 2) {
         if (zone === 'right') {
           v.currentTime = Math.min(v.duration, v.currentTime + 10);
           setShowOverlay('forward');
@@ -62,10 +75,10 @@ const CustomVideoPlayer = ({
           v.currentTime = Math.max(0, v.currentTime - 10);
           setShowOverlay('backward');
         }
-      } else if (tapCount === 3) {
+      } else if (count === 3) {
         if (zone === 'middle') onNextVideo?.();
         if (zone === 'left')   onShowComments?.();
-        if (zone === 'right')  onClose?.();
+        if (zone === 'right')  navigate('/');
         setShowOverlay(
           zone === 'middle' ? 'next'
           : zone === 'left'   ? 'comments'
@@ -73,7 +86,8 @@ const CustomVideoPlayer = ({
         );
       }
       setTapCount(0);
-      setTimeout(() => setShowOverlay(''), 300);
+      tapCountRef.current = 0;
+      setTimeout(() => setShowOverlay(''), 350);
     }, 400);
   };
 
@@ -132,11 +146,18 @@ const CustomVideoPlayer = ({
     return `${m}:${s}`;
   };
 
+  // Prevent native dblclick fullscreen
+  const handleDoubleClick = e => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   return (
     <div
       ref={containerRef}
       className="custom-video-player"
-      onClick={handleTap}
+      onClick={handleTapEvent}
+      onTouchEnd={handleTapEvent}
       onDoubleClick={handleDoubleClick}
     >
       <video

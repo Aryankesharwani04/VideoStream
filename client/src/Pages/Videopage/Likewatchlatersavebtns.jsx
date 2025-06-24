@@ -76,9 +76,9 @@ const toggledislikevideo=(e,lk)=>{
 }
   return (
     <div className="btns_cont_videoPage">
-      <div className="btn_VideoPage">
+      {/* <div className="btn_VideoPage">
         <BsThreeDots/>
-      </div>
+      </div> */}
       <div className="btn_VideoPage">
         <div className="like_videoPage" onClick={(e)=>togglelikevideo(e,vv.Like)}>
           {likebtn? (

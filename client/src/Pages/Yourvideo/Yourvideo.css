@@ -1,4 +1,8 @@
 .container_yourvideo{
-    padding: 0.5rem;
+    padding: 0;
     color: white;
+}
+.container_Pages_App{
+    height: 100vh;
+    width: 100vw;
 }
