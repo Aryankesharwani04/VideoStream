@@ -36,7 +36,23 @@ const CustomVideoPlayer = ({
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
 
+  // Show/hide play button overlay
+  const [showPlayBtn, setShowPlayBtn] = useState(false);
+
+  // Show play button when paused, hide after tap when playing
+  useEffect(() => {
+    if (!playing) {
+      setShowPlayBtn(true);
+    } else {
+      // Hide after 1s when playing
+      const t = setTimeout(() => setShowPlayBtn(false), 1000);
+      return () => clearTimeout(t);
+    }
+  }, [playing]);
+
   // --- Improved Tap/Click/Touch Handler for Mobile/Desktop ---
+  const tapQueue = useRef([]); // {time, x, y}
+
   const touchData = useRef({ x: 0, y: 0, time: 0 });
 
   const handleTouchStart = e => {
@@ -58,10 +74,36 @@ const CustomVideoPlayer = ({
       const dt = Date.now() - touchData.current.time;
       // Only treat as tap if movement is small and time is short
       if (dx < 20 && dy < 20 && dt < 500) {
-        handleTapEvent({
-          clientX: touch.clientX,
-          touches: null // Mark as not a real touch event for tap logic
-        });
+        // Add tap to queue
+        const now = Date.now();
+        tapQueue.current.push({ time: now, x: touch.clientX, y: touch.clientY });
+        // Remove old taps
+        tapQueue.current = tapQueue.current.filter(t => now - t.time < 500);
+        // If 3 taps in 500ms and close in space, treat as triple tap
+        if (tapQueue.current.length >= 3) {
+          const t1 = tapQueue.current[tapQueue.current.length - 3];
+          const t3 = tapQueue.current[tapQueue.current.length - 1];
+          if (Math.abs(t1.x - t3.x) < 40 && Math.abs(t1.y - t3.y) < 40 && t3.time - t1.time < 500) {
+            // Triple tap
+            handleTapEvent({ clientX: t3.x, triple: true });
+            tapQueue.current = [];
+            return;
+          }
+        }
+        // If 2 taps in 400ms and close in space, treat as double tap
+        if (tapQueue.current.length >= 2) {
+          const t1 = tapQueue.current[tapQueue.current.length - 2];
+          const t2 = tapQueue.current[tapQueue.current.length - 1];
+          if (Math.abs(t1.x - t2.x) < 40 && Math.abs(t1.y - t2.y) < 40 && t2.time - t1.time < 400) {
+            // Double tap
+            handleTapEvent({ clientX: t2.x, double: true });
+            tapQueue.current = [];
+            return;
+          }
+        }
+        // Otherwise, treat as single tap
+        handleTapEvent({ clientX: touch.clientX });
+        tapQueue.current = [];
       }
     }
   };
@@ -77,6 +119,34 @@ const CustomVideoPlayer = ({
     const rect = containerRef.current.getBoundingClientRect();
     const x = clientX - rect.left;
     const zone = getTapZone(x, rect.width);
+    // Mobile: use e.triple/e.double for tap type
+    if (e.triple) {
+      // Triple tap
+      if (zone === 'middle') onNextVideo?.();
+      if (zone === 'left')   onShowComments?.();
+      if (zone === 'right')  navigate('/');
+      setShowOverlay(
+        zone === 'middle' ? 'next'
+        : zone === 'left'   ? 'comments'
+        : 'close'
+      );
+      setTimeout(() => setShowOverlay(''), 350);
+      return;
+    }
+    if (e.double) {
+      // Double tap
+      const v = videoRef.current;
+      if (zone === 'right') {
+        v.currentTime = Math.min(v.duration, v.currentTime + 10);
+        setShowOverlay('forward');
+      } else if (zone === 'left') {
+        v.currentTime = Math.max(0, v.currentTime - 10);
+        setShowOverlay('backward');
+      }
+      setTimeout(() => setShowOverlay(''), 350);
+      return;
+    }
+    // Single tap (desktop or mobile)
     const now = Date.now();
     if (now - lastTap < 400) {
       setTapCount(c => {
@@ -199,6 +269,24 @@ const CustomVideoPlayer = ({
         disablePictureInPicture
         {...props}
       />
+
+      {/* Center Play/Pause Button Overlay */}
+      {showPlayBtn && (
+        <button
+          className="center-play-btn"
+          aria-label={playing ? 'Pause' : 'Play'}
+          onClick={e => {
+            e.stopPropagation();
+            if (playing) {
+              videoRef.current.pause();
+            } else {
+              videoRef.current.play();
+            }
+          }}
+        >
+          {playing ? '❚❚' : '►'}
+        </button>
+      )}
 
       {showOverlay && <div className={`overlay ${showOverlay}`} />}
 
